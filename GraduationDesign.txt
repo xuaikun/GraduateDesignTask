@@ -1,2 +1,5 @@
 2018年11月18日：
   开始我的毕业设计，将之前做过的CliquePartitioningAlgorithm算法程序重新用python实现一次，它是毕业设计的一部分，而且是非常重要的一部分
+
+2018年11月19日：
+  在使用Numpy过程中完成数组的初始化，之后在实现CLiqePartitioningAlgorithm算法中大有作用。
