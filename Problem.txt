@@ -1,0 +1,35 @@
+2018年11月19日：
+    在使用python中调用numpy库，在数组操作时出现了n多意外，
+import numpy as np
+NodeList = np.empty([n1,n2],int)
+# 初始化一个n1行n2列，元素为整形的二维数组
+特别注意两种情况：
+Node = np.empty([n,1],int)
+这说明定义了一个n行的数组
+如：
+Node =[
+[1],
+[2],
+[n]]
+Node访问元素的时候，直接用Node[i]或者Node[i][0] 那个列的这项，可以要可以不要
+NodeList = np.empty([1,n],int)
+这说明定义了一个n列的数组
+如：
+NodeList =[
+[1,2,3,4,5,6, ,, n]]
+NodeList 访问元素的时候，需要用NodeList[0][i]，前面那个表示行，不可以省略
+所以对NodeList进行选择排序的时候，需要这样
+# 必须体现它是哪一行的，不然就是错的
+def SelectSort(A):
+    lenght = A.shape[1]
+
+    for i in range(1, lenght - 1):
+        max = i
+        temp = 0
+        for j in range(i + 1, lenght):
+            if A[0][max] < A[0][j]:
+                max = j
+        temp = A[0][max]
+        A[0][max] = A[0][i]
+        A[0][i] = temp
+    return
