@@ -3,4 +3,4 @@
 
 2018年11月19日：
   在使用Numpy过程中完成数组的初始化，之后在实现CLiqePartitioningAlgorithm算法中大有作用。
-今天看看能不能把CliquePartitioningAlgorithm算法的一部分完成
+今天看看能不能把CliquePartitioningAlgorithm算法的一部分完成，目前文件已经能够正常读取，回去再优化，今晚尽量把算法实验完成
