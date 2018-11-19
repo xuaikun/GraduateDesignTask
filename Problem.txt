@@ -33,3 +33,9 @@ def SelectSort(A):
         A[0][max] = A[0][i]
         A[0][i] = temp
     return
+    
+ .py文件里面的几个东西的解释：
+ Edge_Delete[i][k] = x 表明选中i和k两个节点时，需要删除的边的数目为x
+ Degree[0][i] = Degree[0][i] + EdgeList[i][j] 表示i节点的度，即每一行中1的个数
+ （1）删除边的数量
+ （2）找出节点的度
