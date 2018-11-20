@@ -39,3 +39,6 @@ def SelectSort(A):
  Degree[0][i] = Degree[0][i] + EdgeList[i][j] 表示i节点的度，即每一行中1的个数
  （1）删除边的数量
  （2）找出节点的度
+
+2018年11月20日：
+    发现python跑的程序和c++跑的程序结果不一样，发现原因竟是：Max_Common_Neighbor_num遍历顺序不一样    

@@ -6,4 +6,5 @@
 今天看看能不能把CliquePartitioningAlgorithm算法的一部分完成，目前文件已经能够正常读取，回去再优化，今晚尽量把算法实验完成
 
 2018年11月20日：
-  用python实现了最原始的CliquePartitioningAlgorithm问题，当Common_Neighbor最大值不唯一时，选择删除边最少的那两个节点。
+  用python实现了最原始的CliquePartitioningAlgorithm问题，当Common_Neighbor最大值不唯一时，选择（合并）删除边最少的那两个节点。
+  今晚回去把选择合并两个节点时删除最大度的的两个节点~
