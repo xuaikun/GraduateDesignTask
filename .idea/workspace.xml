@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="eb44fbd3-da71-4cda-8064-7a21163a82ea" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GraduateDesignIead.md" beforeDir="false" afterPath="$PROJECT_DIR$/GraduateDesignIead.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/LKH.py" beforeDir="false" afterPath="$PROJECT_DIR$/LKH.py" afterDir="false" />
-    </list>
+    <list default="true" id="eb44fbd3-da71-4cda-8064-7a21163a82ea" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,7 +87,7 @@
     <session id="1705125540">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="1" />
+          <entry key="project.closed" value="2" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.68" value="1" />
           <entry key="project.opened" value="2" />
@@ -126,7 +122,7 @@
         <entry file="file://$PROJECT_DIR$/LKH.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="19">
-              <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
+              <caret line="1" selection-start-line="1" selection-end-line="1" />
             </state>
           </provider>
         </entry>
@@ -182,8 +178,8 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="333" />
-    <option name="y" value="122" />
+    <option name="x" value="180" />
+    <option name="y" value="57" />
     <option name="width" value="853" />
     <option name="height" value="703" />
   </component>
@@ -297,8 +293,7 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="267" y="98" width="682" height="562" extended-state="0" />
-    <editor active="true" />
+    <frame x="144" y="46" width="682" height="562" extended-state="0" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.31089744" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -365,7 +360,7 @@
     <entry file="file://$PROJECT_DIR$/LKH.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="19">
-          <caret line="1" lean-forward="true" selection-start-line="1" selection-end-line="1" />
+          <caret line="1" selection-start-line="1" selection-end-line="1" />
         </state>
       </provider>
     </entry>
