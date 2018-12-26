@@ -1,5 +1,5 @@
 ﻿# graduate
-毕业设计及研究生学习-By Aikun_Xu
+毕业设计任务-By Aikun_Xu
 ### other_reference文件夹中存放其他参考文献，实验过程中看过的
 ### reference 文件夹中存放着毕业设计过程中需要参考的
 ### ACA_TSP.m 蚁群算法求解TSP问题
