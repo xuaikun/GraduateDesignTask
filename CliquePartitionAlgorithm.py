@@ -17,13 +17,10 @@ def select_sort(A):
     return
 # 统一说明 对于一维数组 我们统一初始化为 x = np.empty([1, n + 1], int)
 # 其中 1表示1行 n+1表示n+1列 int 表示整形 赋值的时候直接用 x[0][i] = q
-
-
-if __name__ == "__main__":
+# temp 需要是一个二维数组
+# 分团算法
+def CliquePartition(temp):
     start = time.time()
-    # 已经知道 矩阵为方阵即 n*n的矩阵
-    # 从文件导入.txt文档，我们的数据保存在.txt文档里面
-    temp = np.loadtxt('ok.txt')
     # 将.txt文档中矩阵的边长读取出来，作为我们的n
     print ('temp.shape[0] = ', temp.shape[0])
     print ('temp.shape[1] = ', temp.shape[1])
@@ -70,12 +67,6 @@ if __name__ == "__main__":
         for j in range(2, n + 1):   # 每个NodeList初始化时只有NodeList[i][1] = 1,j != 1时，NodeList[i][j] = 0
             # 若i节点被加入到某个Clique中，那么NodeList[i][1] = 0
             NodeList[i][j] = 0    # i = 1 to i -> n循环统计NodeList[i][1]中等于1的个数就是Clique的个数
-    # 打印验证初始化是否成功
-    # for i in range(1, n + 1):
-    #   print ('Node[0][',i, ']=', Node[0][i])
-    #   for j in range(1, n + 1):
-    #      print ('NodeList[', i, '][', j, ']=', NodeList[i][j])
-
     # 初始化无向图中边的情况（即哪个节点与哪个节点相连）
     # 节点之间相连，则对应的两个节点之间的连线对应的值 = 1
     # Node[1] 和 Node[2] 相连 则EdgeList[1][2] = 1 否则 为 0
@@ -102,8 +93,9 @@ if __name__ == "__main__":
     Max_Common_Neighbor_i_Point_Last = 0
     Max_Common_Neighbor_j_Point_Last = 0
     # 分别保存每条边的i，j节点
-    Max_Common_Neighbor_i_Point = np.empty([1, n + 1], int)
-    Max_Common_Neighbor_j_Point = np.empty([1, n + 1], int)
+    # 已知一个图形是n边形，那它最多可以产生的边的数目x = n*(n - 3)/2 + n,其中n*(n - 3)/2为对角线的数目，n为节点数(几边形)
+    Max_Common_Neighbor_i_Point = np.empty([1, (n*(n - 3)/2 + n) + 1], int)
+    Max_Common_Neighbor_j_Point = np.empty([1, (n*(n - 3)/2 + n) + 1], int)
     # 当最大Common_Neighbor的边不止一条时，需要找度最大的那两个节点
 
     Max_Common_Neighbor_num = 0  # 统计有用最大Common_Neighbor的边的数量
@@ -231,6 +223,7 @@ if __name__ == "__main__":
                         Max_Common_Neighbor_num = Max_Common_Neighbor_num + 1
                         # 统计最大Common_Neighbor位置，即：i，j两个节点标号
                         # Max_Common_Neighbor_num 可以作为index
+                        # print "Max_Common_Neighbor_num =", Max_Common_Neighbor_num
                         Max_Common_Neighbor_i_Point[0][Max_Common_Neighbor_num] = i
                         Max_Common_Neighbor_j_Point[0][Max_Common_Neighbor_num] = j
                         # print ('i = ', i, "j = ", j)
@@ -463,15 +456,17 @@ if __name__ == "__main__":
     print ("print Clique_Count = ", Clique_Count)
     # Clique = np.empty([Clique_Count + 1, 4], int)
     # 将Clique分团打印出来
+    CliqueSum_Edge = []
     for i in range(1, n + 1):
         Clique = []
         if NodeList[i][1] != 0:
             # 保证这点的根节点一定存在
-            Clique.append(i)
+            Clique.append(i - 1)
             for j in range(i + 1, n + 1):
                 if NodeList[i][j] != 0:
-                    Clique.append(j)
-            print "Clique[", i, '] = ', Clique
+                    Clique.append(j - 1)
+            print "Clique[", i - 1, '] = ', Clique
+            CliqueSum_Edge.append(Clique)
     end = time.time()
     print ('Delete_Edge time = ', end - start, 's')
 
@@ -790,17 +785,31 @@ if __name__ == "__main__":
         if NodeList[i][1] != 0:
             Clique_Count = Clique_Count + 1
     print ("print Clique_Count = ", Clique_Count)
+    CliqueSum_Degree = []
     # Clique = np.empty([Clique_Count + 1, 4], int)
     # 将Clique分团打印出来
     for i in range(1, n + 1):
         Clique = []
         if NodeList[i][1] != 0:
             # 保证这点的根节点一定存在
-            Clique.append(i)
+            Clique.append(i - 1)
             for j in range(i + 1, n + 1):
                 if NodeList[i][j] != 0:
-                    Clique.append(j)
-            print "Clique[", i, '] = ', Clique
+                    Clique.append(j - 1)
+            print "Clique[", i - 1, '] = ', Clique
+            CliqueSum_Degree.append(Clique)
     end = time.time()
     print ('Delete_Degree time = ', end - start, 's')
+    print "CliqueSum_Edge =\n", CliqueSum_Edge
+    print "CliqueSum_Degree =\n", CliqueSum_Degree
+    CliqueResult = []
+    CliqueResult.append(CliqueSum_Edge)
+    CliqueResult.append(CliqueSum_Degree)
+    return CliqueResult
 
+if __name__ == "__main__":
+    # 已经知道 矩阵为方阵即 n*n的矩阵
+    # 从文件导入.txt文档，我们的数据保存在.txt文档里面
+    temp = np.loadtxt('ok.txt')
+    # temp 需要是一个二维数组
+    CliquePartition(temp)
