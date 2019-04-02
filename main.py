@@ -8,28 +8,31 @@ import TourFunction as TF
 import matplotlib.pyplot as plt
 import CliquePartitionAlgorithm as CP
 
+# 打印测试信息的标志位
+DebugFlag = False
+
 result_path = "E:\\00000000000graduate-study\\GraduateDesignTask\\result"
 # 使用备份数据的标志，False不使用，True使用
-DataBackup = False
+DataBackup = True
 # 是否使用同一组障碍信息，False无备份障碍数据，True有障碍数据
 ObstacleBackup = True
 # 三种分布的标志，True为选择该分布，False表示不选择该分布
-poissonFlag = True
+poissonFlag = False
 normalFlag = False
-uniformFlag = False
+uniformFlag = True 
 
-# 电单车节点的个数【目前只能节点个数只能为4的倍数】
-NodeNum = 100
+# 电单车节点的个数
+NodeNum = 10
 # 电单车运动区域的大小单位m
-EdgeLength = 2000
+EdgeLength = 500
 # 障碍个数
 ObstaclesNum = 20
 # 障碍边长
 ObstacleLength = 20
 
 # 假设的,需要修改的，目前太大了
-Distance = (EdgeLength/10.0)*np.sqrt(2)
-
+# Distance = (EdgeLength/10.0)*np.sqrt(2)
+Distance = 121.3
 # Normal_scale为正态分布的标准差【越小，产生的数据点越靠近对称轴】，最小值大概为1
 # 标准差越大电单车节点越分散
 Normal_scale = 70
@@ -45,11 +48,6 @@ ObstacleXUp   = np.empty([1, ObstaclesNum], int)
 ObstacleYDown = np.empty([1, ObstaclesNum], int)
 ObstacleYUp   = np.empty([1, ObstaclesNum], int)
 
-# 创建距离矩阵的一下数组的初始化
-# 初始化邻接矩阵
-N_distance = np.zeros([NodeNum, NodeNum], dtype = np.float)
-# 两个节点之间的路径信息,用list来保存,即：从起点到终点过程中记录走过的位置
-Road_information = np.empty([NodeNum, NodeNum], list)
 
 
 # 判断路径是否存在
@@ -98,6 +96,216 @@ Node_uniform_information_data_txt = os.path.join(uniform_path, 'Node_uniform_inf
 NodeAdjacencyMatrix_poisson_data_txt = os.path.join(poisson_path, 'NodeAdjacencyMatrix_data.txt')
 NodeAdjacencyMatrix_normal_data_txt = os.path.join(normal_path, 'NodeAdjacencyMatrix_data.txt')
 NodeAdjacencyMatrix_uniform_data_txt = os.path.join(uniform_path, 'NodeAdjacencyMatrix_data.txt')
+
+# Add Virtual Node
+def AddVirtualNode(Coordinate, Coordinatex_New, Coordinatey_New, ObstacleCoordinate, ObstaclesNum, NodeList):
+	# 在这里我已经获取了所有节点x坐标集合Coordinate[0]，y坐标集合Coordinate[1]，以及障碍区域的信息
+	# 统计之前生成了多少个节点的坐标
+	CoordinateLen = len(Coordinate[0])
+	
+	for l in range(0, CoordinateLen):
+		Coordinatex_New.append(Coordinate[0][l])
+		Coordinatey_New.append(Coordinate[1][l])
+	for i in range(0, CoordinateLen):
+		for j in range(i + 1, CoordinateLen):
+			# 第一个节点的坐标
+			Coordinate[0][i]	# x坐标
+			Coordinate[1][i]	# y坐标
+
+			# 第二个节点坐标
+			Coordinate[0][j]	# x坐标
+			Coordinate[1][j]	# y坐标
+			# 添加x坐标序列
+			polyfitx = []
+			# 添加y坐标序列
+			polyfity = []
+			polyfitx.append(Coordinate[0][i])
+			polyfitx.append(Coordinate[0][j])
+			polyfity.append(Coordinate[1][i])
+			polyfity.append(Coordinate[1][j])
+			# x与y的函数关系
+			fxy = np.polyfit(polyfitx, polyfity, 1)
+			# y与x的函数关系
+			fyx = np.polyfit(polyfity, polyfitx, 1)
+			# x与y的函数方程
+			pxy = np.poly1d(fxy)
+			# y与x的函数方程
+			pyx = np.poly1d(fyx)
+			if DebugFlag is True:
+				print "已经获得函数方程"
+				print "pxy =", pxy
+				print "pyx =", pyx
+			# 准备对障碍区域一一测试
+			# ObstacleCoordinate
+			ObstacleXDown[0] = ObstacleCoordinate[0]
+			# print "ObstacleXDown[0] =\n", ObstacleXDown[0]
+			ObstacleXUp[0]   = ObstacleCoordinate[1]
+			# print "ObstacleXUp[0] =\n", ObstacleXUp[0]
+			ObstacleYDown[0] = ObstacleCoordinate[2]
+			# print "ObstacleYDown[0] =\n", ObstacleYDown[0]
+			ObstacleYUp[0]   = ObstacleCoordinate[3]
+			# print "ObstacleYUp[0] =\n", ObstacleYUp[0]
+			# 对于障碍区域依次循环检测，决定是否添加虚拟节点
+			for k in range(0, ObstaclesNum):
+				# 当前障碍的四个点的对应的横坐标和纵坐标
+				# 左下角坐标
+				ObstacleXDown[0][k]
+				ObstacleYDown[0][k]
+				# 左上角坐标
+				ObstacleXDown[0][k]
+				ObstacleYUp[0][k]
+				# 右下角坐标
+				ObstacleXUp[0][k]
+				ObstacleYDown[0][k]
+				# 右上角坐标
+				ObstacleXUp[0][k]
+				ObstacleYUp[0][k]
+				# 对4条边进行操作
+				# 保存交点的序列
+				Intersectionx = []
+				Intersectiony = []
+				Nodei = Coordinate[0][i]	# i节点的x坐标
+				Nodej = Coordinate[0][j]    # j节点的x坐标
+				Maxx = Nodej
+				Minx = Nodei 
+				# 两个坐标的x坐标值把大小区分一下
+				if Nodei > Nodej:
+					Maxx = Nodei
+					Minx = Nodej
+				if (ObstacleXUp[0][k] < Minx) or (ObstacleXDown[0][k] > Maxx):
+					print "no exists Obstacle at i and j"
+				else:
+					print "exists Obstacle at i and j"
+					for m in range(0, 4):
+						if m == 0:
+							print "detect left"
+							xleft = ObstacleXDown[0][k]
+							# 测试结果取2位小数
+							print "pxy(xleft) =", round(pxy(xleft), 2)
+							virtualx = xleft
+							virtualy = round(pxy(xleft), 2)
+								
+							if (virtualy < ObstacleYDown[0][k]) or (virtualy > ObstacleYUp[0][k]):
+								print "no exists Intersection at left"
+							else:
+								print "exists Intersection at left"
+								Intersectionx.append(virtualx)
+								Intersectiony.append(virtualy)
+								print "Intersection =", (virtualx, virtualy)
+						
+						elif m == 1:
+							print "detect right"
+							xright = ObstacleXUp[0][k]
+							# 测试结果取2位小数
+							print "pxy(xright) =", round(pxy(xright), 2)
+							virtualx = xright
+							virtualy = round(pxy(xright), 2)
+								
+							if(virtualy < ObstacleYDown[0][k]) or (virtualy > ObstacleYUp[0][k]):
+								print "no exists Intersection at right"		
+							else:
+								print "exists Intersection at right"
+								Intersectionx.append(virtualx)
+								Intersectiony.append(virtualy)
+								print "Intersection =", (virtualx, virtualy)
+						
+						elif m == 2:
+							print "detect top"
+							yUp = ObstacleYUp[0][k] 
+							# 测试结果取2位小数
+							print "pyx(yUp) =", round(pyx(yUp), 2)
+							virtualy = yUp
+							virtualx = round(pyx(yUp), 2)
+							if (virtualx < ObstacleXDown[0][k]) or (virtualx > ObstacleXUp[0][k]):
+								print "no exists Intersection at top"
+							else:
+								print "exists Intersection at top"
+								Intersectionx.append(virtualx)
+								Intersectiony.append(virtualy)
+								print "Intersection =", (virtualx, virtualy)
+
+						elif m == 3:
+							print "detect down"
+							ydown = ObstacleYDown[0][k]
+							# 测试结果取2位小数
+							print "pyx(ydown) =", round(pyx(ydown), 2)
+							virtualy = ydown
+							virtualx = round(pyx(ydown), 2)
+							
+							if (virtualx < ObstacleXDown[0][k]) or (virtualx > ObstacleXUp[0][k]):
+								print "no exists Intersection at down"
+							else:
+								print "exists Intersection at down"
+								Intersectionx.append(virtualx)
+								Intersectiony.append(virtualy)
+								print "Intersection =", (virtualx, virtualy)
+					if len(Intersectionx) > 0:
+						# 仅当出现交点才需要检查交点信息，并且最多有两个交点
+						
+						if DebugFlag is True:
+							print "i =", i
+							print "j =", j
+							print "Intersectionx =", Intersectionx
+							print "Intersectiony =", Intersectiony
+						virtualx = (Intersectionx[0] + Intersectionx[len(Intersectionx) - 1])/2.0
+						virtualy = (Intersectiony[0] + Intersectiony[len(Intersectiony) - 1])/2.0
+
+						# 这里还得做个判断，产生的虚拟节点，应该只能存在于两个节点之间
+						Maxx  	# 两个节点中x大的
+						Minx 	# 两个节点中x小的
+						# 第一个节点的坐标
+						Coordinate[0][i]	# x坐标
+						Coordinate[1][i]	# y坐标
+
+						# 第二个节点坐标
+						Coordinate[0][j]	# x坐标
+						Coordinate[1][j]	# y坐标
+						# virtualx不再两个节点之间的最大
+						if (Minx < virtualx) and (virtualx < Maxx):
+							# 虚拟节点到两个点的距离不能大于设定的Distance，因为它的存在变得无所谓了
+							# 这样可以大大减少计算量
+							# 好好想想这里需要使用的是什么距离，需要用A_Star算法解决吗？
+							if (np.sqrt(np.power((virtualx - Coordinate[0][i]), 2) + np.power((virtualy - Coordinate[1][i]), 2)) < Distance
+								) and (np.sqrt(np.power((virtualx - Coordinate[0][j]), 2) + np.power((virtualy - Coordinate[1][j]), 2)) < Distance):
+								if DebugFlag is True:
+									print "New node's Coordinate =", (virtualx, virtualy)
+									print "NodeList =", NodeList 
+								NodeList.append(NodeList[len(NodeList) - 1] + 1)
+								if DebugFlag is True:
+									print "NodeList =", NodeList
+									print "Coordinate[0] =\n", Coordinate[0]
+									print "Coordinate[1] =\n", Coordinate[1]
+								Coordinatex_New.append(round(virtualx, 2))
+								Coordinatey_New.append(round(virtualy, 2))
+								if DebugFlag is True:
+									print "Coordinatex_New =\n", Coordinatex_New
+									print "Coordinatey_New =\n", Coordinatey_New
+	
+
+# deleteVirtualNode
+def DeleteVirtualNode(CliqueResult):
+	len(CliqueResult) # 节点群集合
+	DeleteNullCluste = []
+	for i in range(0, len(CliqueResult)):
+		# 获取其中一个节点群集合,将标号大于NodeNum - 1的节点从节点群中删掉
+		CliqueR_list = CliqueResult[i]
+		delete_list = []
+		for j in range(0, len(CliqueR_list)):
+			if CliqueR_list[j] >= NodeNum:
+				# 统计需要删除的节点
+				delete_list.append(CliqueR_list[j])
+		# 循环删除delete_list中的节点
+		for j in range(0, len(delete_list)):
+			CliqueR_list.remove(delete_list[j])
+		if len(CliqueR_list) == 0:
+			# 如果当前的电单车节点集群中不存在节点，
+			# 意味着它为空节点集群，需要删掉
+			DeleteNullCluste.append(CliqueR_list)
+	# 删掉空的节点集群
+	for j in range(0, len(DeleteNullCluste)):
+		CliqueResult.remove(DeleteNullCluste[j])
+	return
+
 # add Xcoordinate and Ycoordinate
 def AddXandYCoordinate(Coordinate, Coordinate_new, NodeNum):
 	NodeXCoordinate = np.empty([1, NodeNum], float)
@@ -305,44 +513,32 @@ def Normal(NodeNum, EdgeLength, ObstacleCoordinate):
 	# lam 是对称轴，算均值， size是要生成点的个数
 	x1 = np.random.normal(EdgeLength/5.0, Normal_scale, size = NodePart)
 	y1 = np.random.normal(EdgeLength/5.0, Normal_scale, size = NodePart)
-	# print "x1 =\n", x1
-	# print "y1 =\n", y1
 	# 判断节点群中是否有传感器节点被部署到障碍上了
 	result = CheckCoordinate(x1, y1, EdgeLength, ObstacleCoordinate, ObstaclesNum, ObstacleExpand)
 	x1 = result[0]
 	y1 = result[1]
-	# print "check x1 =\n", x1
-	# print "check y1 =\n", y1
-
 	
 	x2 = np.random.normal(EdgeLength*2/5.0, Normal_scale, size = NodePart)
 	y2 = np.random.normal(EdgeLength/5.0, Normal_scale, size = NodePart)
-	# print "x2 =\n", x2
-	# print "y2 =\n", y2
+
 	result = CheckCoordinate(x2, y2, EdgeLength, ObstacleCoordinate, ObstaclesNum, ObstacleExpand)
 	x2 = result[0]
 	y2 = result[1]
-	# print "check x2 =\n", x2
-	# print "check y2 =\n", y2
 
 	x3 = np.random.normal(EdgeLength*3/5.0, Normal_scale, size = NodePart)
 	y3 = np.random.normal(EdgeLength*2/5.0, Normal_scale, size = NodePart)
-	# print "x3 =\n", x3
-	# print "y3 =\n", y3
+
 	result = CheckCoordinate(x3, y3, EdgeLength, ObstacleCoordinate, ObstaclesNum, ObstacleExpand)
 	x3 = result[0]
 	y3 = result[1]
-	# print "check x3 =\n", x3
-	# print "check y3 =\n", y3
+
 	x4 = np.random.normal(EdgeLength*4/5.0, Normal_scale, size = LastNode)
 	y4 = np.random.normal(EdgeLength*3/5.0, Normal_scale, size = LastNode)
-	# print "x4 =\n", x4
-	# print "y4 =\n", y4
+
 	result = CheckCoordinate(x4, y4, EdgeLength, ObstacleCoordinate, ObstaclesNum, ObstacleExpand)
 	x4 = result[0]
 	y4 = result[1]
-	# print "check x4 =\n", x4
-	# print "check y4 =\n", y4
+
 	result = MergeCoordinate(NodeXCoordinate, NodeYCoordinate, x1, y1, x2, y2, x3, y3, x4, y4)
 	NodeXCoordinate = result[0]
 	NodeYCoordinate = result[1]
@@ -546,8 +742,12 @@ def SuredistributeFlag(poissonFlag, normalFlag, uniformFlag):
 	if uniformFlag is True:
 		distributeFlag = 'uniform'
 	return distributeFlag
+
 # 主函数
 def main():
+	NodeList = []
+	for i in range(0, NodeNum):
+		NodeList.append(i)
 	# 重新生成数据
 	if DataBackup is False:
 		result = Init(ObstaclesNum, EdgeLength, ObstacleLength)
@@ -560,19 +760,57 @@ def main():
 		Coordinate = result[1]
 	# 确定本次为什么分布
 	distributeFlag = SuredistributeFlag(poissonFlag, normalFlag, uniformFlag)
+	
+	Coordinatex_New = []
+	Coordinatey_New = []
+	# 添加虚拟节点
+	AddVirtualNode(Coordinate, Coordinatex_New, Coordinatey_New, ObstacleCoordinate, ObstaclesNum, NodeList)
+
 	# 将节点和障碍显示在平面二维平面中
-	TF.AllNodeShow(Coordinate[0], Coordinate[1], ObstacleCoordinate, ObstaclesNum, CoordinateScale, EdgeLength, result_name, distributeFlag)
+	# TF.AllNodeShow(Coordinate[0], Coordinate[1], ObstacleCoordinate, ObstaclesNum, CoordinateScale, EdgeLength, result_name, distributeFlag)
+	TF.AllNodeShow(Coordinatex_New, Coordinatey_New, ObstacleCoordinate, ObstaclesNum, CoordinateScale, EdgeLength, result_name, distributeFlag)
+	
+	# 重新组合Coordinate
+	Coordinate_new = []
+	Coordinate_new.append(Coordinatex_New)
+	Coordinate_new.append(Coordinatey_New)
+	NodeNum_new = len(NodeList)
+	Coordinate = []
+	Coordinate = AddXandYCoordinate(Coordinate, Coordinate_new, NodeNum_new)
+	
+	# np,show()
 	# 根据距离大小生成节点之间的邻接矩阵
-	NodeAdjacencyMatrix = AdjacencyMatrix(NodeNum, Coordinate, Road_information, N_distance, ObstacleCoordinate, ObstaclesNum)
+	# 创建距离矩阵的一下数组的初始化
+	# 初始化邻接矩阵
+	# NodeNum_new = NodeNum
+	N_distance = np.zeros([NodeNum_new, NodeNum_new], dtype = np.float)
+	# 两个节点之间的路径信息,用list来保存,即：从起点到终点过程中记录走过的位置
+	Road_information = np.empty([NodeNum_new, NodeNum_new], list)
+	NodeAdjacencyMatrix = AdjacencyMatrix(NodeNum_new, Coordinate, Road_information, N_distance, ObstacleCoordinate, ObstaclesNum)
 	# 保存邻接矩阵数据
 	SaveNodeAdjacencyMatrix(distributeFlag, NodeAdjacencyMatrix)
 	# 使用团划分算法 NodeAdjacencyMatrix 表示生成的邻接矩阵
 	CliqueResult = CP.CliquePartition(NodeAdjacencyMatrix)
 	# CliqueResult[0] 为Delete_Edge方法的结果
 	# CliqueResult[1] 为Delete_Degree方法的结果
+	
+	# 在最后的结果中，应该虚拟节点进行删除
+	# 节点集合中，最大的节点的标号为NodeNum - 1
+	DeleteVirtualNode(CliqueResult[0])
+
+	print "CliqueResult[0] =\n", CliqueResult[0]
 	# 将结果呈现在图形中
 	TF.ChildrenTourConstruction(Coordinate[2], Coordinate[3], ObstacleCoordinate, ObstaclesNum, CliqueResult[0], NodeNum, distributeFlag, result_name, EdgeLength)
-	
+	D1 = np.sqrt(np.power((Coordinate[0][0] - Coordinate[0][5]), 2) + np.power((Coordinate[1][0] - Coordinate[1][5]), 2))
+	D2 = np.sqrt(np.power((Coordinate[0][8] - Coordinate[0][9]), 2) + np.power((Coordinate[1][8] - Coordinate[1][9]), 2))
+	# 欧几里得距离的测试
+	print "distance[0][5] =", D1
+	print "distance[8][9] =", D2
+	# A*算法测试距离
+	print "N_distance[0][5] =", N_distance[0][5]
+	print "N_distance[8][9] =", N_distance[8][9]
+
 # 程序开始
 if __name__ == "__main__":
 	main()
+	

@@ -144,7 +144,7 @@ def CreateDistanceNewMatrix(Road_information_temp, N_distance_temp, EdgeLength, 
                 second_coordinate.append(y2)
                 # print "第一个坐标：", first_coordinate
                 # print "第二个坐标：", second_coordinate
-                result = A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new, True)
+                result = A.a_star_algorithm(EdgeLength, first_coordinate, second_coordinate, obstacle_coordinate_new, obstacle_num_new, False)
                 # print "构造回路的result = ", result
                 # 电单车i到电单车j（或电单车j到电单车i）的实际距离
                 # 距离取两位小数，就好
@@ -162,7 +162,7 @@ def CreateDistanceNewMatrix(Road_information_temp, N_distance_temp, EdgeLength, 
     return result_new
 
 # 将子回路首尾连接起来
-def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, ObstaclesNum, R_result, N, mechanism, result_name, EdgeLength):
+def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, ObstaclesNum, R_result, N, mechanism, result_name, EdgeLength):
     # 主要用于画图中进行操作，线条的颜色
     LineColor =['b', 'g', 'r', 'c', 'm', 'y', 'k']
     # LineColor =['b']
@@ -184,8 +184,25 @@ def ChildrenTourConstruction(x_new, y_new, obstacle_coordinate_new, ObstaclesNum
     ax = plt.gca()
     Sposition = result[0]
 
-    x_new[0][0] = x_new[0][Sposition[0]]
-    y_new[0][0] = y_new[0][Sposition[0]]
+    x_new_temp[0][0] = x_new_temp[0][Sposition[0]]
+    y_new_temp[0][0] = y_new_temp[0][Sposition[0]]
+    # 重新赋值节点坐标数组
+    x_new = np.empty([1, N], float)
+    y_new = np.empty([1, N], float)
+    for i in range(0, N):
+        x_new[0][i] = x_new_temp[0][i]
+        y_new[0][i] = y_new_temp[0][i]
+        # 圆的基本信息
+        # 1.圆半径
+        r = 60.65
+        # 2.圆心坐标
+        a = x_new[0][i]
+        b = y_new[0][i]
+        theta = np.arange(0, 2*np.pi, 0.01)
+        x = a + r * np.cos(theta)
+        y = b + r * np.sin(theta)
+        # 绘图
+        plt.plot(x, y)
     # 每个节点用红圈圈表示出来
     ax.scatter(x_new, y_new,color = 'r',label = 'Node', marker = 'o')
     # 给每个节点标号MC_Num,N表示所有的节点都要标号
