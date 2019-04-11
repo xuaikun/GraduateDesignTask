@@ -9,6 +9,47 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import MultipleLocator
 DebugFlag = True
 kedu = 100
+
+# 画圆圈
+def DepictCircle(x_new_temp, y_new_temp, N, r):
+    # 重新赋值节点坐标数组
+    x_new = np.empty([1, N], float)
+    y_new = np.empty([1, N], float)
+    NodeCoordinateList = []
+    for i in range(0, N):
+        x_new[0][i] = x_new_temp[0][i]
+        y_new[0][i] = y_new_temp[0][i]
+        # 圆的基本信息
+        # 1.圆半径
+        # r = 60.65
+        # 2.圆心坐标
+        a = x_new[0][i]
+        b = y_new[0][i]
+        theta = np.arange(0, 2*np.pi, 0.01)
+        # theta = np.arange(0, 2*np.pi, 0.1)
+        x = a + r * np.cos(theta)
+        y = b + r * np.sin(theta)
+        '''
+        print "x =\n", x
+        print "y =\n", y
+        print "len(x) =", len(x)
+        print "len(y) =", len(y) 
+        print "max(x) =", max(x)
+        print "min(x) =", min(x)
+        print "max(x) - min(x) =", max(x) - min(x) 
+        print "max(y) =", max(y)
+        print "min(y) =", min(y)
+        print "max(y) - min(y) =", max(y) - min(y)
+        '''
+        CoordinateList_temp = []
+        CoordinateList_temp.append(x)
+        CoordinateList_temp.append(y)
+        # 按顺序将节点圆周上的坐标进行保存
+        NodeCoordinateList.append(CoordinateList_temp)
+        # 绘图
+        plt.plot(x, y)
+    return NodeCoordinateList 
+
 # 设置障碍
 '''
 函数功能：在平面内设置障碍
@@ -162,7 +203,7 @@ def CreateDistanceNewMatrix(Road_information_temp, N_distance_temp, EdgeLength, 
     return result_new
 
 # 将子回路首尾连接起来
-def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, ObstaclesNum, R_result, N, mechanism, result_name, EdgeLength):
+def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, ObstaclesNum, R_result, N, mechanism, result_name, EdgeLength, r):
     # 主要用于画图中进行操作，线条的颜色
     LineColor =['b', 'g', 'r', 'c', 'm', 'y', 'k']
     # LineColor =['b']
@@ -186,23 +227,14 @@ def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, Ob
 
     x_new_temp[0][0] = x_new_temp[0][Sposition[0]]
     y_new_temp[0][0] = y_new_temp[0][Sposition[0]]
-    # 重新赋值节点坐标数组
-    x_new = np.empty([1, N], float)
-    y_new = np.empty([1, N], float)
-    for i in range(0, N):
-        x_new[0][i] = x_new_temp[0][i]
-        y_new[0][i] = y_new_temp[0][i]
-        # 圆的基本信息
-        # 1.圆半径
-        r = 60.65
-        # 2.圆心坐标
-        a = x_new[0][i]
-        b = y_new[0][i]
-        theta = np.arange(0, 2*np.pi, 0.01)
-        x = a + r * np.cos(theta)
-        y = b + r * np.sin(theta)
-        # 绘图
-        plt.plot(x, y)
+    # 进行画圆
+    NodeCoordinateList = DepictCircle(x_new_temp, y_new_temp, N, r)
+    # 每个节点的圆周上的点集坐标序列
+    print "NodeCoordinateList =\n", NodeCoordinateList 
+    print "len(NodeCoordinateList) =", len(NodeCoordinateList) 
+    # 电单车节点坐标重新赋值
+    x_new = x_new_temp
+    y_new = y_new_temp
     # 每个节点用红圈圈表示出来
     ax.scatter(x_new, y_new,color = 'r',label = 'Node', marker = 'o')
     # 给每个节点标号MC_Num,N表示所有的节点都要标号
@@ -355,4 +387,5 @@ def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, Ob
     plt.xlim([0 - 1, EdgeLength + 1]) #设置绘图X边界                                                                                                   
     plt.ylim([0 - 1, EdgeLength + 1]) #设置绘图Y边界
     plt.show()
-    return 
+    # 返回每个点集坐标序列
+    return NodeCoordinateList
