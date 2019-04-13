@@ -11,14 +11,14 @@ DebugFlag = True
 kedu = 100
 
 # 画圆圈
-def DepictCircle(x_new_temp, y_new_temp, N, r):
+def DepictCircle(NodeCoordinateList, list_new, x_new_temp, y_new_temp, r, CSL_string):
     # 重新赋值节点坐标数组
-    x_new = np.empty([1, N], float)
-    y_new = np.empty([1, N], float)
-    NodeCoordinateList = []
-    for i in range(0, N):
-        x_new[0][i] = x_new_temp[0][i]
-        y_new[0][i] = y_new_temp[0][i]
+    x_new = np.empty([1, len(list_new)], float)
+    y_new = np.empty([1, len(list_new)], float)
+    
+    for i in range(0, len(list_new)):
+        x_new[0][i] = x_new_temp[0][list_new[i]]
+        y_new[0][i] = y_new_temp[0][list_new[i]]
         # 圆的基本信息
         # 1.圆半径
         # r = 60.65
@@ -29,25 +29,14 @@ def DepictCircle(x_new_temp, y_new_temp, N, r):
         # theta = np.arange(0, 2*np.pi, 0.1)
         x = a + r * np.cos(theta)
         y = b + r * np.sin(theta)
-        '''
-        print "x =\n", x
-        print "y =\n", y
-        print "len(x) =", len(x)
-        print "len(y) =", len(y) 
-        print "max(x) =", max(x)
-        print "min(x) =", min(x)
-        print "max(x) - min(x) =", max(x) - min(x) 
-        print "max(y) =", max(y)
-        print "min(y) =", min(y)
-        print "max(y) - min(y) =", max(y) - min(y)
-        '''
+
         CoordinateList_temp = []
         CoordinateList_temp.append(x)
         CoordinateList_temp.append(y)
         # 按顺序将节点圆周上的坐标进行保存
-        NodeCoordinateList.append(CoordinateList_temp)
+        NodeCoordinateList[0][list_new[i]] = CoordinateList_temp
         # 绘图
-        plt.plot(x, y)
+        plt.plot(x, y, CSL_string)
     return NodeCoordinateList 
 
 # 设置障碍
@@ -203,9 +192,10 @@ def CreateDistanceNewMatrix(Road_information_temp, N_distance_temp, EdgeLength, 
     return result_new
 
 # 将子回路首尾连接起来
-def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, ObstaclesNum, R_result, N, mechanism, result_name, EdgeLength, r):
+def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, ObstaclesNum, R_result, N, mechanism, result_name, EdgeLength, r, NodeCoordinateList):
     # 主要用于画图中进行操作，线条的颜色
-    LineColor =['b', 'g', 'r', 'c', 'm', 'y', 'k']
+    # LineColor =['b', 'g', 'r', 'c', 'm', 'y', 'k']
+    LineColor =['b']
     # LineColor =['b']
     # 线条的风格
     LineStyle = ['-', '--', '-.', ':']
@@ -227,16 +217,18 @@ def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, Ob
 
     x_new_temp[0][0] = x_new_temp[0][Sposition[0]]
     y_new_temp[0][0] = y_new_temp[0][Sposition[0]]
-    # 进行画圆
-    NodeCoordinateList = DepictCircle(x_new_temp, y_new_temp, N, r)
-    # 每个节点的圆周上的点集坐标序列
-    print "NodeCoordinateList =\n", NodeCoordinateList 
-    print "len(NodeCoordinateList) =", len(NodeCoordinateList) 
+    
     # 电单车节点坐标重新赋值
     x_new = x_new_temp
     y_new = y_new_temp
+    x_new_label = []
+    y_new_label = []
     # 每个节点用红圈圈表示出来
-    ax.scatter(x_new, y_new,color = 'r',label = 'Node', marker = 'o')
+    for k in range(0, N):
+        x_new_label.append(x_new[0][k])
+        y_new_label.append(y_new[0][k])
+
+    ax.scatter(x_new_label, y_new_label,color = 'r',label = 'Node', marker = 'o')
     # 给每个节点标号MC_Num,N表示所有的节点都要标号
     
     for k in range(0, N):
@@ -257,16 +249,15 @@ def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, Ob
     for p in range(0, len(SNode)):
         XCoordinate_list.append(x_new[0][SNode[p]] + 10)
         YCoordinate_list.append(y_new[0][SNode[p]] + 10)
-    ax.scatter(XCoordinate_list, YCoordinate_list, s = 100, color = 'k',label = 'S', marker = 's')
-
+    
     # 打印检查产生的充电子回路有多少条，每条子回路由那些节点组成
     for p in range(0, z):
         R_value = R_list[p]
         goal = R_value
         # S点为黑色正方形，并且大一点
-        S_Flag = 'S' + '&' + str(goal[0])
+        # S_Flag = 'S' + '&' + str(goal[0])
         # if p == 0:
-        ax.text(x_new[0][goal[0]]+ 10, y_new[0][goal[0]]+ 10, S_Flag, fontsize=20)
+        # ax.text(x_new[0][goal[0]]+ 10, y_new[0][goal[0]]+ 10, S_Flag, fontsize=20)
         
         # 用于图例显示MC（）
         # 表示存在回路才需要连线
@@ -293,6 +284,12 @@ def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, Ob
                     CSL_string = LineColor[random.randint(0, len(LineColor)-1)]
                     CSL_string = CSL_string + LineStyle[random.randint(0, len(LineStyle)-1)]
             
+            # 进行画圆
+            NodeCoordinateList = DepictCircle(NodeCoordinateList, list_new, x_new_temp, y_new_temp, r, CSL_string)
+            # 每个节点的圆周上的点集坐标序列
+            # print "NodeCoordinateList =\n", NodeCoordinateList 
+            print "len(NodeCoordinateList) =", len(NodeCoordinateList)
+
             # CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
             # 计算当前是第几个回路
             MC_Num_temp = MC_Num 
@@ -357,6 +354,12 @@ def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, Ob
                     CSL_string = LineColor[random.randint(0, len(LineColor)-1)]
                     CSL_string = CSL_string + LineStyle[random.randint(0, len(LineStyle)-1)]
             
+            # 进行画圆
+            NodeCoordinateList = DepictCircle(NodeCoordinateList, list_new, x_new_temp, y_new_temp, r, CSL_string)
+            # 每个节点的圆周上的点集坐标序列
+            # print "NodeCoordinateList =\n", NodeCoordinateList 
+            print "len(NodeCoordinateList) =", len(NodeCoordinateList)
+
             # CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
             # 计算当前是第几个回路
             MC_Num_temp = MC_Num 
@@ -372,12 +375,216 @@ def ChildrenTourConstruction(x_new_temp, y_new_temp, obstacle_coordinate_new, Ob
                     y_temp = [y_list[i + 1], y_list[0]]
                     plt.plot(x_temp, y_temp, CSL_string, label = label_value, linewidth=1)
             MC_Num = MC_Num + 1
+    # 充电桩的位置
+    ax.scatter(XCoordinate_list, YCoordinate_list, s = 100, color = 'k',label = 'S', marker = 's')
     plt.grid()
     plt.legend(loc='upper right', edgecolor='black')
     ax.legend(loc='upper right', edgecolor='black')
     # 保存生成的图片
     
     Graph_Name = mechanism + '_Final.png'
+    # print "Graph_Name =", Graph_Name
+    origin_path = result_name
+    # print "origin_path =", origin_path  
+    All_path = os.path.join(origin_path, Graph_Name)
+    # print "All_path =", All_path
+    plt.savefig(All_path)
+    plt.xlim([0 - 1, EdgeLength + 1]) #设置绘图X边界                                                                                                   
+    plt.ylim([0 - 1, EdgeLength + 1]) #设置绘图Y边界
+    plt.show()
+    # 返回每个点集坐标序列
+    return NodeCoordinateList
+
+# 将子回路首尾连接起来
+def ChildrenTourConstruction_new(x_new_temp, y_new_temp, obstacle_coordinate_new, ObstaclesNum, R_result, N, mechanism, result_name, EdgeLength, r, SCPCoordinate, NodeCoordinateList):
+    # 主要用于画图中进行操作，线条的颜色
+    # LineColor =['b', 'g', 'r', 'c', 'm', 'y', 'k']
+    LineColor =['b']
+    # 线条的风格
+    LineStyle = ['-', '--', '-.', ':']
+    # 线条的标志
+    LineLogo = ['.', 'o', 'v', '^', '>', '<', '1', '2', '3', '4', 's', 'p', '*']
+
+    if DebugFlag is True:
+        print "模拟轨迹##########\n"
+    Style_num = 0
+    Color_num = 0
+    result = R_result
+    # 充电回路的名字
+    MC_Num = 0
+    # 图例显示的标志
+    plt.figure('Scatter fig')
+    plt.title('S & Node')
+    ax = plt.gca()
+    print "result =", result 
+    print "x_new_temp =\n", x_new_temp
+    print "y_new_temp =\n", y_new_temp
+    Sposition = result[0]
+
+    x_new_temp[0][0] = x_new_temp[0][Sposition[0]]
+    y_new_temp[0][0] = y_new_temp[0][Sposition[0]]
+    
+    # 电单车节点坐标重新赋值
+    x_new = x_new_temp
+    y_new = y_new_temp
+    x_new_label = []
+    y_new_label = []
+    # 每个节点用红圈圈表示出来
+    for k in range(0, N):
+        x_new_label.append(x_new[0][k])
+        y_new_label.append(y_new[0][k])
+    ax.scatter(x_new_label, y_new_label,color = 'r',label = 'Node', marker = 'o')
+    # 给每个节点标号MC_Num,N表示所有的节点都要标号
+    
+    for k in range(0, N):
+        ax.text(x_new[0][k], y_new[0][k], k, fontsize = 10)
+    legend_flag = True
+    
+    R_list = result
+    
+    z = len(R_list)
+    SNode = []
+    for p in range(0, z):
+        # 提取每一个团的第一个节点
+        R_temp = R_list[p]
+        SNode.append(R_temp[0])
+    XCoordinate_list = []
+    YCoordinate_list = []
+    
+    # 将每个团的第一个节点提取出来充当暂时的充电桩
+    for p in range(0, len(SNode)):
+        XCoordinate_list.append(x_new[0][SNode[p]] + 10)
+        YCoordinate_list.append(y_new[0][SNode[p]] + 10)
+
+    # 打印检查产生的充电子回路有多少条，每条子回路由那些节点组成
+    for p in range(0, z):
+        R_value = R_list[p]
+        goal = R_value
+        # S点为黑色正方形，并且大一点
+        # S_Flag = 'S' + '&' + str(goal[0])
+        # if p == 0:
+        # ax.text(x_new[0][goal[0]]+ 10, y_new[0][goal[0]]+ 10, S_Flag, fontsize=20)
+        
+        # 用于图例显示MC（）
+        # 表示存在回路才需要连线
+        if  len(R_value) == 1:
+            list_new = R_value
+            x = []
+            y = []
+            for j in range(0, len(list_new)):
+                x.append(x_new[0][list_new[j]])
+                y.append(y_new[0][list_new[j]])
+            #分别存放所有点的横坐标和纵坐标，一一对应
+            x_list = x
+            y_list = y
+
+            CSL_string = LineColor[Color_num]
+            CSL_string = CSL_string + LineStyle[Style_num]
+            if Color_num < (len(LineColor) - 1):
+                Color_num = Color_num + 1 
+            if Color_num == (len(LineColor) - 1):
+                if Style_num < (len(LineStyle) - 1):
+                    Style_num = Style_num + 1
+                    Color_num = 0
+                else:
+                    CSL_string = LineColor[random.randint(0, len(LineColor)-1)]
+                    CSL_string = CSL_string + LineStyle[random.randint(0, len(LineStyle)-1)]
+            # 进行画圆
+            NodeCoordinateList = DepictCircle(NodeCoordinateList, list_new, x_new_temp, y_new_temp, r, CSL_string)
+            # 每个节点的圆周上的点集坐标序列
+            # print "NodeCoordinateList =\n", NodeCoordinateList 
+            # print "len(NodeCoordinateList) =", len(NodeCoordinateList) 
+            # CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
+            # 计算当前是第几个回路
+            MC_Num_temp = MC_Num 
+            label_value = 'Clique' + str(MC_Num_temp)
+            x_temp = x_list[0]
+            y_temp = y_list[0]
+            plt.plot(x_temp, y_temp, CSL_string, label = label_value, linewidth=1)
+            MC_Num = MC_Num + 1
+            
+        if  len(R_value) != 1:
+            list_new = R_value
+            x = []
+            y = []
+            for j in range(0, len(list_new)):
+                x.append(x_new[0][list_new[j]])
+                y.append(y_new[0][list_new[j]])
+            #分别存放所有点的横坐标和纵坐标，一一对应
+            x_list = x
+            y_list = y
+            # 障碍坐标区域使用绿色表示
+            # 障碍横坐标x的范围
+            if legend_flag is True:
+                x_down_list = obstacle_coordinate_new[0]
+                x_up_list  = obstacle_coordinate_new[1]
+            
+                # 障碍纵坐标y的范围
+                y_down_list = obstacle_coordinate_new[2]
+                y_up_list = obstacle_coordinate_new[3]
+                for j in range(0, ObstaclesNum):
+                    x_down_value= x_down_list[j]
+                    x_up_value= x_up_list[j]
+                    y_down_value= y_down_list[j]
+                    y_up_value= y_up_list[j]
+                    # 给障碍填充绿色
+                    plt.fill_between(range(x_down_value, x_up_value+1), y_down_value , y_up_value, facecolor='green')
+                # 障碍图例显示
+                ax.scatter((x_down_list[1]+x_up_list[1])/2, (
+                         y_down_list[1]+y_up_list[1])/2, color = 'green',label = 'Obstacle', marker = 's')
+                # 图片坐标刻度设置
+                
+                ax.xaxis.set_major_locator(MultipleLocator(kedu))
+                ax.yaxis.set_major_locator(MultipleLocator(kedu))
+                
+                #设置x轴、y轴名称
+                ax.set_xlabel('X(m)')
+                ax.set_ylabel('Y(m)')
+                legend_flag = False
+            # 将节点连接构成回路
+            # 获取当前回路节点个数
+            q = len(x_list) - 1
+            # 设置回路线条、格式、颜色等等
+            
+            CSL_string = LineColor[Color_num]
+            CSL_string = CSL_string + LineStyle[Style_num]
+            if Color_num < (len(LineColor) - 1):
+                Color_num = Color_num + 1 
+            if Color_num == (len(LineColor) - 1):
+                if Style_num < (len(LineStyle) - 1):
+                    Style_num = Style_num + 1
+                    Color_num = 0
+                else:
+                    CSL_string = LineColor[random.randint(0, len(LineColor)-1)]
+                    CSL_string = CSL_string + LineStyle[random.randint(0, len(LineStyle)-1)]
+            # 进行画圆
+            NodeCoordinateList = DepictCircle(NodeCoordinateList, list_new, x_new_temp, y_new_temp, r, CSL_string)
+            # 每个节点的圆周上的点集坐标序列
+            # print "NodeCoordinateList =\n", NodeCoordinateList 
+            # print "len(NodeCoordinateList) =", len(NodeCoordinateList) 
+            # CSL_string = CSL_string + my_logo[random.randint(0, len(my_logo)-1)]
+            # 计算当前是第几个回路
+            MC_Num_temp = MC_Num 
+            label_value = 'Clique' + str(MC_Num_temp)
+            for i in range(0, q):
+                # 前后连接
+                x_temp = [x_list[i], x_list[i+1]]
+                y_temp = [y_list[i], y_list[i+1]]
+                # label 表示线的颜色
+                plt.plot(x_temp, y_temp, CSL_string, linewidth=1)
+                if i == q - 1:
+                    x_temp = [x_list[i + 1], x_list[0]]
+                    y_temp = [y_list[i + 1], y_list[0]]
+                    plt.plot(x_temp, y_temp, CSL_string, label = label_value, linewidth=1)
+            MC_Num = MC_Num + 1
+    # 充电桩部署的位置       
+    ax.scatter(SCPCoordinate[0], SCPCoordinate[1], s = 100, color = 'k',label = 'S', marker = 's')
+    plt.grid()
+    plt.legend(loc='upper right', edgecolor='black')
+    ax.legend(loc='upper right', edgecolor='black')
+    # 保存生成的图片
+    
+    Graph_Name = mechanism + '_Final_update.png'
     # print "Graph_Name =", Graph_Name
     origin_path = result_name
     # print "origin_path =", origin_path  

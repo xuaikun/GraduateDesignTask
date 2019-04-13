@@ -1,5 +1,6 @@
 # encoding: utf-8
 import os
+import copy
 import time
 import random
 import itertools
@@ -18,9 +19,9 @@ DataBackup = True
 # 是否使用同一组障碍信息，False无备份障碍数据，True有障碍数据
 ObstacleBackup = True
 # 三种分布的标志，True为选择该分布，False表示不选择该分布
-poissonFlag = False
+poissonFlag = True
 normalFlag = False
-uniformFlag = True 
+uniformFlag = False
 
 # 电单车节点的个数
 NodeNum = 10
@@ -42,8 +43,6 @@ Normal_scale = 70
 CoordinateScale = 100
 # 扩大到障碍外围至少+1m处
 ObstacleExpand = 1
-
-
 
 # 障碍坐标范围
 ObstacleXDown = np.empty([1, ObstaclesNum], int)
@@ -308,7 +307,6 @@ def AddVirtualNode(Coordinate, Coordinatex_New, Coordinatey_New, ObstacleCoordin
 									print "Coordinatex_New =\n", Coordinatex_New
 									print "Coordinatey_New =\n", Coordinatey_New
 	
-
 # deleteVirtualNode
 def DeleteVirtualNode(CliqueResult):
 	len(CliqueResult) # 节点群集合
@@ -344,6 +342,7 @@ def AddXandYCoordinate(Coordinate, Coordinate_new, NodeNum):
 	Coordinate.append(NodeXCoordinate)
 	Coordinate.append(NodeYCoordinate)
 	return Coordinate
+
 # 检查节点坐标是否出现异常
 def CheckCoordinate(x, y, EdgeLength, ObstacleCoordinate, ObstaclesNum, ObstacleExpand):
 	ObstacleXDown[0] = ObstacleCoordinate[0]
@@ -639,6 +638,8 @@ def Uniform(NodeNum_new, EdgeLength, ObstacleCoordinate):
 # 构建邻接矩阵
 def AdjacencyMatrix(NodeNum, Coordinate, Road_information, N_distance, ObstacleCoordinate, ObstaclesNum):
 	# 提取坐标
+	CoordinateXEuclid = Coordinate[0]
+	CoordinateYEuclid = Coordinate[1]
 	CoordinateX = Coordinate[2]
 	CoordinateY = Coordinate[3]
 	NodeList = []
@@ -665,9 +666,9 @@ def AdjacencyMatrix(NodeNum, Coordinate, Road_information, N_distance, ObstacleC
 			# 不属于对角线的地方，按照距离来确定是否赋值1或0
 			else:
 				# 用欧几里得距离判断，这样就没现实场景的效果了
-				# if np.sqrt(np.power((CoordinateX[i] - CoordinateX[j]),2) + np.power((CoordinateY[i] - CoordinateY[j]), 2)) < Distance:
+				if np.sqrt(np.power((CoordinateXEuclid[i] - CoordinateXEuclid[j]),2) + np.power((CoordinateYEuclid[i] - CoordinateYEuclid[j]), 2)) < Distance:
 				# 用A*算法求得的实际距离，小于该距离的，对应在邻接矩阵中的值为1
-				if N_distance[i][j] < Distance:
+				# if N_distance[i][j] < Distance:
 					NodeAdjacencyMatrix[i][j] = 1
 					NodeAdjacencyMatrix[j][i] = NodeAdjacencyMatrix[i][j]  
 				# 两辆电单车的距离过大，表示不能用同一个充电桩进行充电
@@ -826,17 +827,31 @@ def main():
 	DeleteVirtualNode(CliqueResult[0])
 
 	print "CliqueResult[0] =\n", CliqueResult[0]
+	CliqueResult_backup = np.empty([1,1], list)
+	'''
+	for i in range(0, len(CliqueResult)):
+		CliqueResult_backup.append(CliqueResult[i])
+	'''
+	CliqueResult_backup[0][0] = CliqueResult[0]
+	CliqueResult_backup_temp = copy.deepcopy(CliqueResult_backup)
+	print "CliqueResult_backup_temp =", CliqueResult_backup_temp
 	# 将结果呈现在图形中
 	# 圆的半径
 	# 0，5or0,6 or 5,6
-	r = 60.65
+	# r = 60.65
 	# 0，6 or 5，6
-	# r = 55
+	r = 55
+	# 0 or 5 or 6
+	# r = 30
 	# 0,5,6
 	# r = 65
 	# 所有节点的圆周上的点集序列
-	NodeCoordinateList = TF.ChildrenTourConstruction(Coordinate[2], Coordinate[3], ObstacleCoordinate, ObstaclesNum, CliqueResult[0], NodeNum, distributeFlag, result_name, EdgeLength, r)
+	NodeCoordinateList_temp = np.empty([1, NodeNum], list)
+
+	NodeCoordinateList_temp = TF.ChildrenTourConstruction(Coordinate[2], Coordinate[3], ObstacleCoordinate, ObstaclesNum, CliqueResult[0], NodeNum, distributeFlag, result_name, EdgeLength, r, NodeCoordinateList_temp)
+	NodeCoordinateList = NodeCoordinateList_temp[0]
 	print "new len(NodeCoordinateList) =", len(NodeCoordinateList)
+	
 	# 将分团进行提取
 	CliqueList = CliqueResult[0]
 	# 统计分团的个数
@@ -862,7 +877,10 @@ def main():
 
 			# 当前分团只剩下一个节点时，该节点就是一个静态充电桩位置
 			if len(CliqueListNode) == 1:
-				SCP_OneClique.append(CliqueListNode[len(CliqueListNode) - 1])
+				print "SCP_OneClique =", SCP_OneClique
+				CliqueListNode_temp = []
+				CliqueListNode_temp.append(CliqueListNode[len(CliqueListNode) - 1])
+				SCP_OneClique.append(CliqueListNode_temp)
 				CliqueListNode.remove(CliqueListNode[len(CliqueListNode) - 1])
 				print "over Clique"
 				print "SCP_OneClique =", SCP_OneClique
@@ -1062,7 +1080,7 @@ def main():
 								# 将j和k点相交的点进行保存
 								OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] = OverlapaArea_list
 								OverlapaArea[CliqueListNode[k]][CliqueListNode[j]] = OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
-								print "OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] =\n", OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
+								# print "OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] =\n", OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
 								print "len(OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]) =", len(OverlapaArea[CliqueListNode[j]][CliqueListNode[k]])
 								
 
@@ -1106,51 +1124,111 @@ def main():
 											print "Cx =\n", Cx
 											print "Cx =\n", Cx
 
-										for c in range(0, len(Cx)):
-											if DebugFlag is True:
-												print "c = ", c
-												print "len(Cx) =", len(Cx)
-											# 计数到50的倍数，会暂停一下
-											if c%50 == 0:
-												print "c =", c
-												print "delay 2s"
-												time.sleep(2)
-												# print "Cx[c] =", Cx[c]
-												# print "Cx[c] =", Cx[c]
-											
-											for b in range(0, len(Bx)):
+										# 被包含区域的x的最小值大于包含区域的最小值
+										Bxmin = min(Bx)
+										Cxmin = min(Cx)
+										
+										# 被包含区域的x的最大值小于包含区域的最大值
+										Bxmax = max(Bx)
+										Cxmax = max(Cx)
+
+										# 被包含区域的y的最小值大于包含区域的最小值
+										Bymin = min(By)
+										Cymin = min(Cy)
+
+										# 被包含区域的y的最大值小于包含区域的最大值
+										Bymax = max(By)
+										Cymax = max(Cy)
+										print "Bxmin =", Bxmin
+										print "Cxmin =", Cxmin
+										print "Cxmax =", Cxmax
+										print "Bxmax =", Bxmax
+										
+
+										print "Bymin =", Bymin
+										print "Cymin =", Cymin
+										print "Cymax =", Cymax
+										print "Bymax =", Bymax
+										
+										# 重合区域被包含在第三个圆中了
+										# 这里主要是看看重合区域是否包含于另一个圆里面
+										# 如果重合部分在第三个圆中，则不必判断重合区域与第三个圆之间是否相交
+										# 所以这里需要一个标志位
+										# 假设开始时，与第三个点不存在包含关系
+										ThridFlag = False 
+										if (Cxmin > Bxmin) and (Cxmax < Bxmax) and(
+											Cymin > Bymin) and (Cymax < Bymax):
+											ThridFlag = True
+											print "区域之间出现包含关系"
+											print "happen~"
+											OverlapaArea_list = []
+									
+											OverlapaArea_list.append(OverlapaArea[CliqueListNode[j]][CliqueListNode[k]][0])
+											TestNodeList.append(CliqueListNode[a])
+											OverlapaArea_list.append(TestNodeList)
+
+											# 将j和k点相交的点进行保存
+											OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] = OverlapaArea_list
+											OverlapaArea[CliqueListNode[k]][CliqueListNode[j]] = OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
+											# print "OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] =\n", OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
+											print "len(OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]) =", len(OverlapaArea[CliqueListNode[j]][CliqueListNode[k]])
+											print "check result, delay 2s"
+											time.sleep(2)
+											# 表明当前所有的节点所属范围出现重合区域
+											if len(TestNodeList) == len(CliqueListNode):
+												# 对于这个分团只需要一个充电桩就行，不用计算其他节点组合的情况了
+												print "AllNodeIntersection"
+												AllNodeIntersectionFlag = True
+												break
+										# 说明重合区域与第三个圆之间不存在包含关系
+										# 接下来判断是否相交或者相离
+										if ThridFlag is False: 
+											for c in range(0, len(Cx)):
 												if DebugFlag is True:
 													print "c = ", c
 													print "len(Cx) =", len(Cx)
-													print "len(Bx) =", len(Bx)
-													# 出现交点
-													print "Cx[c] =", Cx[c]
-													print "Bx[", b, "] =", Bx[b]
-													print "Cx[c] =", Cx[c]
-													print "By[", b, "] =", By[b]
-												if(np.abs(Cx[c] - Bx[b]) < accuracy) and (np.abs(Cy[c] - By[b]) < accuracy):
+												# 计数到50的倍数，会暂停一下
+												if c%50 == 0:
+													print "c =", c
+													print "delay 2s"
+													time.sleep(2)
+													# print "Cx[c] =", Cx[c]
+													# print "Cx[c] =", Cx[c]
 												
-												# if(np.abs(Cx[c] - Bx[b]) < 0.5) and (np.abs(Cy[c] - By[b]) < 0.5):
+												for b in range(0, len(Bx)):
 													if DebugFlag is True:
-														print "exists Intersection, delay 2s"
-														time.sleep(2)
-													if len(CX) == 0:
-														CX.append(Cx[c])
-														CY.append(Cy[c])
-														BX.append(Bx[b])
-														BY.append(By[b])
-														CNumber.append(c)
-														BNumber.append(b)
-													else:
-														if CX[len(CX) - 1] != Cx[c]:
+														print "c = ", c
+														print "len(Cx) =", len(Cx)
+														print "len(Bx) =", len(Bx)
+														# 出现交点
+														print "Cx[c] =", Cx[c]
+														print "Bx[", b, "] =", Bx[b]
+														print "Cx[c] =", Cx[c]
+														print "By[", b, "] =", By[b]
+													# 存在不相交的情况：相离或者包含
+													if(np.abs(Cx[c] - Bx[b]) < accuracy) and (np.abs(Cy[c] - By[b]) < accuracy):
+														if DebugFlag is True:
+															print "exists Intersection, delay 2s"
+															time.sleep(2)
+														if len(CX) == 0:
 															CX.append(Cx[c])
 															CY.append(Cy[c])
 															BX.append(Bx[b])
 															BY.append(By[b])
 															CNumber.append(c)
 															BNumber.append(b)
-													# 重合区域与第三点存在重合区域
-													IntersectionFlag = True
+														else:
+															if CX[len(CX) - 1] != Cx[c]:
+																CX.append(Cx[c])
+																CY.append(Cy[c])
+																BX.append(Bx[b])
+																BY.append(By[b])
+																CNumber.append(c)
+																BNumber.append(b)
+														# 重合区域与第三点存在重合区域
+														IntersectionFlag = True
+												
+
 										# 重合区域与第三点存在重合区域
 										if IntersectionFlag is True:
 											# print "exists Intersection, delay 1s"
@@ -1243,10 +1321,10 @@ def main():
 											# 将j和k点相交的点进行保存
 											OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] = OverlapaArea_list
 											OverlapaArea[CliqueListNode[k]][CliqueListNode[j]] = OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
-											print "OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] =\n", OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
+											# print "OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] =\n", OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
 											print "len(OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]) =", len(OverlapaArea[CliqueListNode[j]][CliqueListNode[k]])
-											print "check result, delay 10s"
-											time.sleep(10)
+											# print "check result, delay 10s"
+											# time.sleep(10)
 											# 表明当前所有的节点所属范围出现重合区域
 											if len(TestNodeList) == len(CliqueListNode):
 												# 对于这个分团只需要一个充电桩就行，不用计算其他节点组合的情况了
@@ -1296,32 +1374,132 @@ def main():
 									AllNodeIntersectionFlag = True
 									break
 
-						else:				
-							print "no Intersection"
-							# 不存在公共区域
-							# 将j和k点相交的点进行保存
-							IntersectionCoordinate = []
-							OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] = IntersectionCoordinate
-							OverlapaArea[CliqueListNode[k]][CliqueListNode[j]] = OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
+						else:		
+							# 同一个分团中，可能出现两个以上独立存在的节点
+							# 这时候我们应该为它们每个节点都分布一个SCP
+							# 并且将该电单车节点进行删除		
+							print "current two node no Intersection"
+							print "need to check other node exists Intersection"
+							# 假设剩余的所有节点之间都不存在相交的
+							NoIntersectionFlag = True
+							for j in range(0, len(CliqueListNode)):
+								# 不用重复，两个不同的节点进行操作就好
+								for k in range(j + 1, len(CliqueListNode)):
+									# CliqueListNode中第j个节点
+									CliqueListNode[j]
+									# CliqueListNode中第k个节点
+									CliqueListNode[k]
+									# 计算第j和k两个节点之间的距离
+									D = np.sqrt(np.power((Coordinate[0][CliqueListNode[j]] - Coordinate[0][CliqueListNode[k]]), 2) + np.power(
+										(Coordinate[1][CliqueListNode[j]] - Coordinate[1][CliqueListNode[k]]), 2))
+									if D <= 2*r:
+										# 说明还存在相交的两个节点
+										NoIntersectionFlag = False
+										break
+								if NoIntersectionFlag is False:
+									break
+							# 说明剩余的所有节点都不再相交
+							if NoIntersectionFlag is True:
+								# 不存在公共区域
+								# 将j和k点相交的点进行保存
+								IntersectionCoordinate = []
+								print "j =", j
+								print "k =", k
+								print "CliqueListNode =", CliqueListNode
+								OverlapaArea[CliqueListNode[j]][CliqueListNode[k]] = IntersectionCoordinate
+								OverlapaArea[CliqueListNode[k]][CliqueListNode[j]] = OverlapaArea[CliqueListNode[j]][CliqueListNode[k]]
+								print "SCP_OneClique =", SCP_OneClique
+								CliqueListNode_temp = []
+								CliqueListNode_temp.append(CliqueListNode[len(CliqueListNode) - 1])
+								SCP_OneClique.append(CliqueListNode_temp)
+								CliqueListNode.remove(CliqueListNode[len(CliqueListNode) - 1])
+								
+								print "SCP_OneClique =", SCP_OneClique
+								AllNodeIntersectionFlag = True
+								# break
+							
 						# 所有节点有公共所属区域
 						if AllNodeIntersectionFlag is True:
 							print "AllNodeIntersection"
 							break
+
 					# 跳出当前团循环，操作下一个团
 					if AllNodeIntersectionFlag is True:
 						print "AllNodeIntersection"
 						print "into next clique"
-						SCP.append(SCP_OneClique)
+						if SCP_OneClique not in SCP:
+							SCP.append(SCP_OneClique)
+						# print "SCP =", SCP
 						break
 	print "SCP =\n", SCP
+	SCPNumber = 0
+	for i in range(0, len(SCP)):
+		SCPNumber = SCPNumber + len(SCP[i])
+	# 已经明确数量
+	print "need SCP's number =", SCPNumber
+	# 重叠区域保存在OverlapaArea中，对于两个或者两个以上节点重合的位置
+	# 使用节点序列中前两个节点的OverlapaArea[j][k]进行访问即可
+	# 对于只有一个节点的分团区域，就依附其节点构建SCP
+	# 确定SCP的位置
+	OverlapaArea
+	SCPLocationX = []
+	SCPLocationY = []
+	for i in range(0, len(SCP)):
+		for k in range(0, len(SCP[i])):
+			print "SCP[i][k] =", SCP[i][k]
+			# 重合区域不只是一个节点构成
+			if len(SCP[i][k]) > 1:
+				# 通过查询前两个节点即可知道，围成当前区域的节点序列
+				OverlapaArealist_temp = OverlapaArea[SCP[i][k][0]][SCP[i][k][1]]
+				OverlapaArealist = OverlapaArealist_temp[0]
+				# 找出这个区域的中心
+				SCPX = [x[0] for x in OverlapaArealist]
+				SCPY = [x[1] for x in OverlapaArealist]
+				# print "SCPX =\n", SCPX
+				# print "SCPY =\n", SCPY
+				SCPXsum = 0
+				SCPYsum = 0
+				for j in range(0, len(SCPX)):
+					# print "SCPX[j] =", SCPX[j]
+					# print "SCPY[j] =", SCPY[j]
+					SCPXsum = SCPXsum + float(SCPX[j])
+					SCPYsum = SCPYsum + float(SCPY[j])
+				# 圆周区域的坐标
+				SCPXAverage = SCPXsum/len(SCPX) 
+				SCPYAverage = SCPYsum/len(SCPY)
+				SCPLocationX.append(SCPXAverage)
+				SCPLocationY.append(SCPYAverage)
+			else:
+				# 当前区域仅有一个节点构成
+				print "SCP[", i, "][", k, "][0] =", SCP[i][k][0]
+				SCPLocationX.append(Coordinate[0][SCP[i][k][0]] + 10)
+				SCPLocationY.append(Coordinate[1][SCP[i][k][0]] + 10)
+	print "SCPLocationX =\n", SCPLocationX
+	print "SCPLocationY =\n", SCPLocationY
+	SCPCoordinate = []
+	SCPCoordinate.append(SCPLocationX)
+	SCPCoordinate.append(SCPLocationY)
+	# 所有节点的圆周上的点集序列
+	print "CliqueResult_backup_temp =", CliqueResult_backup_temp
+	NodeCoordinateList_temp = TF.ChildrenTourConstruction_new(Coordinate[2], Coordinate[3], ObstacleCoordinate, ObstaclesNum, CliqueResult_backup_temp[0][0], NodeNum, distributeFlag, result_name, EdgeLength, r, SCPCoordinate, NodeCoordinateList_temp)
+	NodeCoordinateList = NodeCoordinateList_temp[0]
 	D1 = np.sqrt(np.power((Coordinate[0][0] - Coordinate[0][5]), 2) + np.power((Coordinate[1][0] - Coordinate[1][5]), 2))
 	D2 = np.sqrt(np.power((Coordinate[0][8] - Coordinate[0][9]), 2) + np.power((Coordinate[1][8] - Coordinate[1][9]), 2))
+	
+	D3 = np.sqrt(np.power((Coordinate[0][0] - Coordinate[0][6]), 2) + np.power((Coordinate[1][0] - Coordinate[1][6]), 2))
+	D4 = np.sqrt(np.power((Coordinate[0][5] - Coordinate[0][6]), 2) + np.power((Coordinate[1][5] - Coordinate[1][6]), 2))
+	
 	# 欧几里得距离的测试
 	print "distance[0][5] =", D1
+
 	print "distance[8][9] =", D2
+	print "distance[0][6] =", D3
+	print "distance[5][6] =", D4
 	# A*算法测试距离
 	print "N_distance[0][5] =", N_distance[0][5]
 	print "N_distance[8][9] =", N_distance[8][9]
+	print "N_distance[0][6] =", N_distance[0][6]
+	print "N_distance[5][6] =", N_distance[5][6]
 
 # 程序开始
 if __name__ == "__main__":
